@@ -11,7 +11,7 @@ configs:
 
 services:
   caddy:
-    image: baskcaddy
+    image: menedev/stingy-caddy
     ports:
       - 80:80
       - 443:443

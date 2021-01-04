@@ -1,19 +1,19 @@
 # use wildcard to prevent leaking subdomain names
 {
-  email ${BASK_MAIL}
+  email ${STINGY_MAIL}
 }
-*.${BASK_ROOT_DOMAIN} {
+*.${STINGY_ROOT_DOMAIN} {
   tls {
     dns cloudflare ${CLOUDFLARE_API_TOKEN}
   }
   @login {
-      host login.${BASK_ROOT_DOMAIN}
+      host login.${STINGY_ROOT_DOMAIN}
   }
 
   route @login {
     auth_portal {
       path /
-      cookie_domain ${BASK_ROOT_DOMAIN}
+      cookie_domain ${STINGY_ROOT_DOMAIN}
       backends {
         generic_oauth2_backend {
           metadata_url https://${AUTH0_SERVER}/.well-known/openid-configuration
@@ -28,25 +28,25 @@
       }
       jwt {
         token_name access_token
-        token_secret ${BASK_TOKEN_SECRET}
+        token_secret ${STINGY_TOKEN_SECRET}
       }
     }
   }
 
   @not_login {
     not {
-      host login.${BASK_ROOT_DOMAIN}
+      host login.${STINGY_ROOT_DOMAIN}
     }
   }
 
   route @not_login {
     jwt {
       primary yes
-      auth_url https://login.${BASK_ROOT_DOMAIN}
+      auth_url https://login.${STINGY_ROOT_DOMAIN}
       trusted_tokens {
         static_secret {
           token_name access_token
-          token_secret ${BASK_TOKEN_SECRET}
+          token_secret ${STINGY_TOKEN_SECRET}
         }
       }
     }
