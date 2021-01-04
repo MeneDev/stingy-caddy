@@ -1,0 +1,54 @@
+# use wildcard to prevent leaking subdomain names
+{
+  email ${BASK_MAIL}
+}
+*.${BASK_ROOT_DOMAIN} {
+  tls {
+    dns cloudflare ${CLOUDFLARE_API_TOKEN}
+  }
+  @login {
+      host login.${BASK_ROOT_DOMAIN}
+  }
+
+  route @login {
+    auth_portal {
+      path /
+      cookie_domain ${BASK_ROOT_DOMAIN}
+      backends {
+        generic_oauth2_backend {
+          metadata_url https://${AUTH0_SERVER}/.well-known/openid-configuration
+          base_auth_url https://${AUTH0_SERVER}/authorize
+          method oauth2
+          realm generic
+          provider generic
+          client_id ${AUTH0_CLIENT_ID}
+          client_secret ${AUTH0_CLIENT_SECRET}
+          scopes openid email profile
+        }
+      }
+      jwt {
+        token_name access_token
+        token_secret ${BASK_TOKEN_SECRET}
+      }
+    }
+  }
+
+  @not_login {
+    not {
+      host login.${BASK_ROOT_DOMAIN}
+    }
+  }
+
+  route @not_login {
+    jwt {
+      primary yes
+      auth_url https://login.${BASK_ROOT_DOMAIN}
+      trusted_tokens {
+        static_secret {
+          token_name access_token
+          token_secret ${BASK_TOKEN_SECRET}
+        }
+      }
+    }
+  }
+}
