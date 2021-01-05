@@ -45,3 +45,10 @@ services:
         "caddy.@who1.host": "who1.mene.dev"
         caddy.reverse_proxy: "@who1 {{upstreams 8000}}"
         caddy.route: "@who1"
+
+networks:
+  caddy:
+    driver: overlay
+
+volumes:
+  caddy_data: {}
