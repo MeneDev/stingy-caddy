@@ -1,52 +1,53 @@
 # use wildcard to prevent leaking subdomain names
 {
-  email ${STINGY_MAIL}
+  debug
+  email {$STINGY_MAIL}
 }
-*.${STINGY_ROOT_DOMAIN} {
+*.{$STINGY_ROOT_DOMAIN} {
   tls {
-    dns cloudflare ${CLOUDFLARE_API_TOKEN}
+    dns cloudflare {$CLOUDFLARE_API_TOKEN}
   }
   @login {
-      host login.${STINGY_ROOT_DOMAIN}
+      host login.{$STINGY_ROOT_DOMAIN}
   }
 
   route @login {
     auth_portal {
       path /
-      cookie_domain ${STINGY_ROOT_DOMAIN}
+      cookie_domain {$STINGY_ROOT_DOMAIN}
       backends {
         generic_oauth2_backend {
-          metadata_url https://${AUTH0_SERVER}/.well-known/openid-configuration
-          base_auth_url https://${AUTH0_SERVER}/authorize
+          metadata_url https://{$AUTH0_SERVER}/.well-known/openid-configuration
+          base_auth_url https://{$AUTH0_SERVER}/authorize
           method oauth2
           realm generic
           provider generic
-          client_id ${AUTH0_CLIENT_ID}
-          client_secret ${AUTH0_CLIENT_SECRET}
+          client_id {$AUTH0_CLIENT_ID}
+          client_secret {$AUTH0_CLIENT_SECRET}
           scopes openid email profile
         }
       }
       jwt {
         token_name access_token
-        token_secret ${STINGY_TOKEN_SECRET}
+        token_secret {$STINGY_TOKEN_SECRET}
       }
     }
   }
 
   @not_login {
     not {
-      host login.${STINGY_ROOT_DOMAIN}
+      host login.{$STINGY_ROOT_DOMAIN}
     }
   }
 
   route @not_login {
     jwt {
       primary yes
-      auth_url https://login.${STINGY_ROOT_DOMAIN}
+      auth_url https://login.{$STINGY_ROOT_DOMAIN}
       trusted_tokens {
         static_secret {
           token_name access_token
-          token_secret ${STINGY_TOKEN_SECRET}
+          token_secret {$STINGY_TOKEN_SECRET}
         }
       }
     }

@@ -22,6 +22,16 @@ services:
       # this volume is needed to keep the certificates
       # otherwise, new ones will be re-issued upon restart
       - caddy_data:/data
+    command: ["caddy", "docker-proxy"]
+    #command: ["sh", "-c", "env"]
+    environment:
+      STINGY_MAIL: arndt@menedev.de
+      STINGY_ROOT_DOMAIN: mene.dev
+      CLOUDFLARE_API_TOKEN: j7afMkMJvEpt1UH9vHDY6xx7WtCK6WT1vYlkgEnb
+      AUTH0_SERVER: mene.eu.auth0.com
+      AUTH0_CLIENT_ID: Ceb2CEMMDruKFc54g2EeUc9kvui9OEIg
+      AUTH0_CLIENT_SECRET: MkkjRRL-eSLn952odgOgeslOGxFd2mZqPn7iPlQSdS-Of9MwsqbXIbFCE9tBK0Bc
+      STINGY_TOKEN_SECRET: 4a6c6ca7-c104-4c49-8c50-6e9729e714fd
     deploy:
       placement:
         constraints:
@@ -40,15 +50,44 @@ services:
     networks:
       - caddy
     deploy:
+      replicas: 2
       labels:
-        caddy: "*.mene.dev"
+        caddy: "*.{$$STINGY_ROOT_DOMAIN}"
         "caddy.@who1.host": "who1.mene.dev"
         caddy.reverse_proxy: "@who1 {{upstreams 8000}}"
         caddy.route: "@who1"
 
+  # deploy:
+  #   image: menedev/stingy-deploy:1b9e697b74eb089df40d0088ae39c91f1912f106
+  #   networks:
+  #     - caddy
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /var/stingy-repos:/var/stingy-repos
+  #   environment:
+  #     STINGLY_DEPLOY_TOKEN: bd572be3-9057-4450-ba90-d2fc1c70a019
+  #     STINGLY_DEPLOY_BASEDIR: /var/stingy-repos
+  #     STINGLY_DEPLOY_GITHUB_TOKEN: ac87f1856a9d0e07f766eb16b49d74ac2d6ffb77
+  #   working_dir: /var/stingy-repos
+  #   deploy:
+  #     placement:
+  #       constraints:
+  #         - node.role == manager
+  #     replicas: 1
+  #     restart_policy:
+  #       condition: any
+  #     labels:
+  #       caddy: "*.{$$STINGY_ROOT_DOMAIN}"
+  #       "caddy.1_@deploy.host": "deploy.mene.dev"
+  #       caddy.2_route: "@deploy"
+  #       #caddy.2_route.jwt.default: allow
+  #       caddy.2_route.jwt.allow: roles anonymous guest
+  #       caddy.2_route.3_reverse_proxy: "{{upstreams 8081}}"
+
 networks:
   caddy:
-    driver: overlay
+    external: true
+    name: caddy
 
 volumes:
   caddy_data: {}
